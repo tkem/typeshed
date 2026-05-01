@@ -138,6 +138,7 @@ class _CacheInfo(NamedTuple):
 
 @type_check_only
 class _AbstractCondition(AbstractContextManager[Any], Protocol):
+    # implementation and unit tests do not use plain wait() and notify()
     def wait(self, timeout: float | None = None) -> bool: ...
     def wait_for(
         self, predicate: Callable[[], _T], timeout: float | None = None
@@ -167,7 +168,8 @@ def cached(
     key: Callable[..., _KT] = ...,
     lock: AbstractContextManager[Any] | None = None,
     condition: _AbstractCondition | None = None,
-    info: Literal[True] = ...,
+    *,
+    info: Literal[True],
 ) -> Callable[[Callable[..., _R]], _cached_wrapper_info[_R]]: ...
 @overload
 def cached(
@@ -183,7 +185,7 @@ class _cachedmethod_wrapper(Generic[_R]):
     __wrapped__: Callable[..., _R]
     __name__: str
     __doc__: str | None
-    cache: MutableMapping[Any, Any] | None
+    cache: MutableMapping[Any, Any]
     cache_key: Callable[..., Any] = ...
     cache_lock: AbstractContextManager[Any] | None = None
     cache_condition: _AbstractCondition | None = None
@@ -200,7 +202,8 @@ def cachedmethod(
     key: Callable[..., _KT] = ...,
     lock: Callable[[Any], AbstractContextManager[Any]] | None = None,
     condition: Callable[[Any], _AbstractCondition] | None = None,
-    info: Literal[True] = ...,
+    *,
+    info: Literal[True],
 ) -> Callable[[Callable[..., _R]], _cachedmethod_wrapper_info[_R]]: ...
 @overload
 def cachedmethod(
